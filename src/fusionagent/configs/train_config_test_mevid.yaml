@@ -1,0 +1,68 @@
+# DataLoader configurations
+root: "/localscratch/zhujie4/data/"
+dataset: "mevid" # ccvid, mevid, ltcc
+num_sample: 4 # (i.e. seq_len)
+max_samples: 1000 # maximum dataset size
+few_shot: null # null for full dataset
+num_workers: 4
+prefetch_factor: 2
+
+# Training configurations
+model: "Qwen/Qwen2.5-VL-3B-Instruct"
+train_method: "grpo" # grpo or sft
+model_cache_dir: "./src/fusionagent/checkpoints"
+# resume_from_checkpoint: "./src/fusionagent/checkpoints/mevid-grpo-200step-Rmetricv2_train-Rformatv2-actfusion_topk40-weights-adacot-frac09_1101_1922"
+output_dir: "./src/fusionagent/checkpoints"
+max_pixels: 401408
+max_prompt_length: 8888
+max_completion_length: 128 # max length for each turn
+max_turns: 4
+num_train_epochs: 8
+max_steps: 200 # if not null, will override num_train_epochs
+per_device_train_batch_size: 1
+num_generations: 6
+gradient_accumulation_steps: 1
+per_device_eval_batch_size : 1
+gradient_checkpointing: false
+mixed_precision: false
+bf16: true
+deepspeed: src/fusionagent/configs/zero2.json
+save_steps: 50
+eval_steps: 50
+eval_delay: 100
+seed: 42
+reward_funcs:
+# - format
+- format_v2
+# - multi_turn
+- metric
+- tool_success_rate
+- answer_accuracy
+reward_weights: # null
+- 1.0
+- 4.0
+- 1.0
+- 1.0
+top_k: 40
+main_frac: 0.9
+
+# LoRA configurations
+use_lora: true # if false, will use fully fine-tuning
+lora_r: 64
+lora_alpha: 128
+lora_dropout: 0.0
+lora_target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+# Optimizer configurations
+# learning_rate: 1.0e-6 # for fully finetuning
+learning_rate: 2.0e-5 # for lora
+beta: 0.04 # weight for KL coefficient, default is 0.04
+weight_decay: 0.0
+warmup_ratio: 0.0
+lr_scheduler_type: "linear"
+
+# Logging configurations
+use_wandb: true
+wandb_project: "fusionagent"
+wandb_run_name: "mevid-grpo-200step-r1_train_rebuttal-Rformatv2-actfusion_topk40-weights-adacot-frac09"
+logging_steps: 1
