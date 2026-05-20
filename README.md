@@ -6,17 +6,18 @@
 [![CVPR 2026](https://img.shields.io/badge/CVPR-2026-blue)](https://cvpr.thecvf.com/Conferences/2026)
 [![Project Page](https://img.shields.io/badge/Project_Page-FusionAgent-green)](https://fusionagent.github.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-red)](LICENSE)
+[![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-Checkpoints-yellow)](https://huggingface.co/Paipile/FusionAgent-CCVID)
 
 <p align="center">
   <a href="https://github.com/jiezhu23"><strong>Jie Zhu</strong></a><sup>1</sup>
   &nbsp;·&nbsp;
-  <a href="#"><strong>Xiao Guo</strong></a><sup>1</sup>
+  <a href="https://chelsea234.github.io/website/"><strong>Xiao Guo</strong></a><sup>1</sup>
   &nbsp;·&nbsp;
   <a href="https://cse.msu.edu/~suyiyan1/"><strong>Yiyang Su</strong></a><sup>1</sup>
   &nbsp;·&nbsp;
-  <strong>Anil Jain</strong><sup>1</sup>
+  <a href="https://www.cse.msu.edu/~jain/"><strong>Anil Jain</strong><sup>1</sup>
   &nbsp;·&nbsp;
-  <a href="https://www.cse.msu.edu/~liuxm/"><strong>Xiaoming Liu</strong></a><sup>1,2</sup>
+  <a href="https://cs.unc.edu/person/xiaoming-liu/"><strong>Xiaoming Liu</strong></a><sup>1,2</sup>
 </p>
 
 <sup>1</sup>Michigan State University&nbsp;&nbsp;&nbsp;
@@ -106,6 +107,8 @@ Update the `root` field in the training config (e.g., `src/fusionagent/configs/t
 
 ### 3. Download Pre-trained Models
 
+#### 3.1 Backbone Models and Our Checkpoints
+
 Download pre-trained backbone model weights from:
 
 - **[[Google Drive]](https://drive.google.com/drive/folders/1xoEIDuTezea-oLBW9VXG0rTSJF2llJNE?usp=sharing)**
@@ -117,6 +120,25 @@ Place the downloaded weights in `src/fusionagent/checkpoints/`, e.g.:
 **AdaFace (HuggingFace):** These models are downloaded automatically from HuggingFace. Set `HF_TOKEN` and the cache paths (`adaface_cache_path`) in the backbone config file for your dataset (e.g., `src/fusionagent/WBModules/model_cfg_ccvid.yaml`).
 
 **BigGait DINOv2 backbone:** Update `pretrained_dinov2` in `src/fusionagent/WBModules/Biggait/configs/BigGait.yaml` and `BigGait_L.yaml` to the absolute path of your downloaded DINOv2 checkpoint (e.g., `/xxx/xxx/dinov2_vits14_pretrain.pth`).
+
+**FusionAgent Checkpoints:** We also release the trained FusionAgent LoRA checkpoints on HuggingFace. The checkpoints are LoRA adapters trained on top of `Qwen/Qwen2.5-VL-3B-Instruct`. To download:
+
+```bash
+hf download Paipile/FusionAgent-CCVID --local-dir src/fusionagent/checkpoints/FusionAgent-CCVID --repo-type model
+```
+
+To load the checkpoint programmatically:
+
+```python
+from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+from peft import PeftModel
+
+base_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+    "Qwen/Qwen2.5-VL-3B-Instruct", torch_dtype="auto", device_map="auto"
+)
+processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct")
+model = PeftModel.from_pretrained(base_model, "Paipile/FusionAgent-CCVID")
+```
 
 ### 4. Precompute Center Features for Training Set
 
@@ -201,7 +223,7 @@ Or directly:
 ```bash
 python src/fusionagent/app.py \
   --configs src/fusionagent/configs/train_config_test_ccvid.yaml \
-  --ckpt_path src/fusionagent/checkpoints/<your-checkpoint> \
+  --ckpt_path src/fusionagent/checkpoints/FusionAgent-CCVID \
   --share
 ```
 
